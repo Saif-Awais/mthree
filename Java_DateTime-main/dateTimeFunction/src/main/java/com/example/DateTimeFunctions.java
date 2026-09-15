@@ -59,12 +59,16 @@ public class DateTimeFunctions {
 	 */
 	public static String getTimeDifference(LocalDate date1, LocalDate date2) {
 		//YOUR CODE STARTS HERE
-		Period period = date1.until(date2);
-		int days = period.getDays();
-		int months = period.getMonths();
-		int years = period.getYears();
-		String str = "Years-" + years + ":Months-" + months + ":Days-" + days;
-		return str;
+		Period difference = date1.until(date2);
+
+		// Gets the time difference in terms of days, months, and years.
+		int days = difference.getDays();
+		int months = difference.getMonths();
+		int years = difference.getYears();
+
+		// Creates a string in the format : "Years-{years}:Months-{months}:Days-{days}"
+		String formattedDifference = "Years-" + years + ":Months-" + months + ":Days-" + days;
+		return formattedDifference;
 		//YOUR CODE ENDS HERE
 
 	}
