@@ -6,25 +6,23 @@ import com.floormastery.model.Order;
 import com.floormastery.model.Product;
 import com.floormastery.model.Tax;
 
-import java.io.FileNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 public interface Service {
-	int getNextOrderNumber();
 
 	Order addOrder(Order order) throws PersistenceException;
 
-	Order calculateOrder(Order order) throws NoSuchOrderException, PersistenceException;
+	Order calculateOrder(Order order) throws PersistenceException;
 
-	Order getOrder(LocalDate ld, int orderNumber) throws NoSuchOrderException;
+	Order getOrder(LocalDate orderDate, int orderNumber) throws NoSuchOrderException;
 
-	Order editOrder(LocalDate ld, int orderNumber, Order order);
+	Order editOrder(LocalDate orderDate, int orderNumber, Order order);
 
 	Map<LocalDate, Map<Integer, Order>> getAllOrders() throws PersistenceException;
 
-	List<Order> getOrdersForDate(LocalDate ld) throws NoSuchOrderException;
+	List<Order> getOrdersForDate(LocalDate orderDate) throws NoSuchOrderException;
 
 	List<Tax> getTaxes() throws PersistenceException;
 
@@ -33,5 +31,5 @@ public interface Service {
 	void exportData() throws PersistenceException;
 
 
-	void removeOrder(LocalDate ld, int orderNumber);
+	void removeOrder(LocalDate orderDate, int orderNumber);
 }

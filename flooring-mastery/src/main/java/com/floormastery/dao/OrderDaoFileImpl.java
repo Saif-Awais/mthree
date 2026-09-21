@@ -24,10 +24,13 @@ public class OrderDaoFileImpl implements OrderDao {
 	@Override
 	public void writeToFile() throws PersistenceException {
 		Path dir;
-		Set<LocalDate> keySet = orders.keySet();
-		for (LocalDate key : keySet) {
-			String formattedKey = key.format(DateTimeFormatter.ofPattern("MMddyyyy"));
-			dir = Paths.get(ORDER_FOLDER, "Orders_" + formattedKey + ".txt");
+		// Get each date that there is an order
+		Set<LocalDate> orderDates = orders.keySet();
+		for (LocalDate orderDate : orderDates) {
+			// Format date to pattern MMddyyyy
+			String formattedDate = orderDate.format(DateTimeFormatter.ofPattern("MMddyyyy"));
+			// Create new file name using formattedDate
+			dir = Paths.get(ORDER_FOLDER, "Orders_" + formattedDate + ".txt");
 			PrintWriter out;
 
 			try {
@@ -36,15 +39,20 @@ public class OrderDaoFileImpl implements OrderDao {
 				throw new PersistenceException("Could not write to file. ");
 			}
 
+			// Create and write a header row
 			out.println("OrderNumber::CustomerName::State::TaxRate::ProductType::Area::" +
 					"CostPerSquareFoot::LaborCostPerSquareFoot::MaterialCost::LaborCost::Tax::Total");
 			out.flush();
-			List<Order> orderList = orders.get(key).values().stream().toList();
-			for (Order currentOrder : orderList) {
-				String orderAsText = marshallOrder(currentOrder);
+
+			// For each order for orderDate,
+			// Get the text then save to file
+			List<Order> ordersAsList = orders.get(orderDate).values().stream().toList();
+			for (Order orderToWrite : ordersAsList) {
+				String orderAsText = marshallOrder(orderToWrite);
 				out.println(orderAsText);
 				out.flush();
 			}
+			// Finally close the file.
 			out.close();
 		}
 	}
@@ -52,6 +60,7 @@ public class OrderDaoFileImpl implements OrderDao {
 
 	@Override
 	public String marshallOrder(Order order) {
+		// Format string to have each field of order separated by a delimiter
 		String OrderAsText = order.getOrderNumber() + DELIMITER;
 		OrderAsText += order.getCustomerName() + DELIMITER;
 		OrderAsText += order.getState() + DELIMITER;
@@ -71,28 +80,32 @@ public class OrderDaoFileImpl implements OrderDao {
 	public void loadFromFile() throws PersistenceException {
 		Path dir = Paths.get(ORDER_FOLDER);
 
+		// For each file in the orders directory
 		try (Stream<Path> stream = Files.list(dir)) {
 
+			// Open file
 			stream.forEach(path -> {
 				try (Scanner scanner = new Scanner(
 						new BufferedReader(new FileReader(path.toFile())))) {
-					String currentLine = scanner.nextLine(); // Reads header row first.
+					// Skip header row
+					String currentLine = scanner.nextLine();
+					// Read each line
 					while (scanner.hasNextLine()) {
 						currentLine = scanner.nextLine();
 
 						if (!currentLine.isBlank()) {
+							// Recreate order object from string in file
 							Order currentOrder = unmarshallOrder(currentLine);
+							// Get orderDate by taking it from file name
 							currentOrder.setOrderDate(LocalDate.parse(path.getFileName().toString().substring(7, 15), DateTimeFormatter.ofPattern("MMddyyyy")));
 
-							orders
-									.computeIfAbsent(
+
+							// Add the order to the map inside orders for its date.
+							orders.computeIfAbsent(
 											currentOrder.getOrderDate(),
-											k -> new HashMap<>()
-									)
-									.put(
-											currentOrder.getOrderNumber(),
-											currentOrder
-									);
+											// Create hashmap if one does not exist
+											k -> new HashMap<>())
+									.put(currentOrder.getOrderNumber(), currentOrder);
 						}
 					}
 
@@ -107,6 +120,11 @@ public class OrderDaoFileImpl implements OrderDao {
 	}
 
 	private Order unmarshallOrder(String orderAsText) {
+		/*
+		Split string around the delimiter
+		Convert variables to BigDecimal or int if necessary
+		Create order, filling in its fields
+		 */
 		String[] orderTokens = orderAsText.split(DELIMITER);
 		Order orderFromFile = new Order();
 		int orderNumber = Integer.parseInt(orderTokens[0]);
@@ -121,6 +139,7 @@ public class OrderDaoFileImpl implements OrderDao {
 		BigDecimal laborCost = new BigDecimal(orderTokens[9]);
 		BigDecimal tax = new BigDecimal(orderTokens[10]);
 		BigDecimal total = new BigDecimal(orderTokens[11]);
+
 		orderFromFile.setOrderNumber(orderNumber);
 		orderFromFile.setCustomerName(customerName);
 		orderFromFile.setProductType(product);
@@ -136,37 +155,44 @@ public class OrderDaoFileImpl implements OrderDao {
 		return orderFromFile;
 	}
 
-	@Override
-	public void getNextOrderNumber() {
-		throw new UnsupportedOperationException("");
-
-	}
 
 	@Override
 	public Order addOrder(Order order) {
+		// Using number and date, save order to memory
 		int orderNumber = order.getOrderNumber();
-		LocalDate date = order.getOrderDate();
-		orders.computeIfAbsent(date, k -> new HashMap<Integer, Order>()).put(orderNumber, order);
+		LocalDate orderDate = order.getOrderDate();
+		orders.computeIfAbsent(orderDate, k -> new HashMap<>()).put(orderNumber, order);
 		return order;
 	}
 
 	@Override
 	public Map<LocalDate, Map<Integer, Order>> getAllOrders() throws PersistenceException {
 
+		// Populate orders map by loading all order objects from file
 		try {
 			loadFromFile();
 		} catch (PersistenceException e) {
 			throw new PersistenceException(e.getMessage());
 		}
+
 		return orders;
 	}
 
 	@Override
-	public Order getOrder(LocalDate ld, int orderNumber) throws NoSuchOrderException {
-		Order order = orders.get(ld).get(orderNumber);
+	public Order getOrder(LocalDate orderDate, int orderNumber) throws NoSuchOrderException {
+		// Return order object for date and number
+		Order order;
 
-		if (order == null) {
-			throw new NoSuchOrderException("No such order for this date and order number. ");
+		try {
+			order = orders.get(orderDate).get(orderNumber);
+
+			// If orders exist for date, but not order number, throw an exception
+			if (order == null) {
+				throw new NoSuchOrderException("No such order for this data and order number");
+			}
+
+		} catch (NullPointerException e) {
+			throw new NoSuchOrderException("No such order for this date. ");
 		}
 
 		return order;
@@ -175,23 +201,28 @@ public class OrderDaoFileImpl implements OrderDao {
 
 	@Override
 	public Order editOrder(LocalDate orderDate, int orderNumber, Order newOrder) {
+		// Save editted order to memory
 		orders.get(orderDate).put(orderNumber, newOrder);
 		return orders.get(orderDate).get(orderNumber);
 	}
 
 	@Override
 	public List<Order> getOrdersForDate(LocalDate orderDate) throws NoSuchOrderException {
+		// Get orders for orderDate
 		Map<Integer, Order> ordersForDate = orders.get(orderDate);
 
+		// No orders exist for that date so throw exception
 		if (ordersForDate == null) {
 			throw new NoSuchOrderException("No order for date. ");
 		}
 
+		// Return orders as a list
 		return ordersForDate.values().stream().toList();
 	}
 
 	@Override
 	public Order removeOrder(LocalDate orderDate, int orderNumber) {
+		// Remove specified order from memory
 		return orders.get(orderDate).remove(orderNumber);
 	}
 }

@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +23,7 @@ public class TaxDaoFileImpl implements TaxDao {
 	@Override
 	public void loadFile() throws PersistenceException {
 
+		// Open tax file
 		Scanner scanner;
 		try {
 			scanner = new Scanner(new BufferedReader(
@@ -33,6 +33,12 @@ public class TaxDaoFileImpl implements TaxDao {
 		} catch (FileNotFoundException e) {
 			throw new PersistenceException("Tax file could not be found. ");
 		}
+
+		/*
+		For each line in file, split at the delimiter
+		Create new tax object
+		Save in memory to allTaxes map
+		 */
 		String currentLine;
 		while (scanner.hasNextLine()) {
 			currentLine = scanner.nextLine();
@@ -47,12 +53,13 @@ public class TaxDaoFileImpl implements TaxDao {
 
 	@Override
 	public List<Tax> getAllTaxes() throws PersistenceException {
+		// Load tax from file
 		try {
 			loadFile();
 		} catch (PersistenceException e) {
 			throw new PersistenceException(e.getMessage());
-			// TODO replace this with PersistenceException
 		}
+		// Return allTaxes as a list
 		return allTaxes.values().stream().toList();
 	}
 }

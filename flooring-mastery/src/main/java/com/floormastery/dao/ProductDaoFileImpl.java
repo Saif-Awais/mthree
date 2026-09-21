@@ -2,13 +2,11 @@ package com.floormastery.dao;
 
 import com.floormastery.exceptions.PersistenceException;
 import com.floormastery.model.Product;
-import com.floormastery.model.Product;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +23,7 @@ public class ProductDaoFileImpl implements ProductDao {
 	@Override
 	public void loadFile() throws PersistenceException {
 		Scanner scanner;
+		// Open products file
 		try {
 			scanner = new Scanner(new BufferedReader(
 					new FileReader(PRODUCT_FILE)
@@ -34,6 +33,7 @@ public class ProductDaoFileImpl implements ProductDao {
 			throw new PersistenceException("Product file could not be found. ");
 		}
 		String currentLine;
+		// For each line in file, create new product object and save it to memory
 		while (scanner.hasNextLine()) {
 			currentLine = scanner.nextLine();
 			String[] ProductTokens = currentLine.split(DELIMITER);
@@ -47,12 +47,14 @@ public class ProductDaoFileImpl implements ProductDao {
 
 	@Override
 	public List<Product> getAllProducts() throws PersistenceException {
+		// Load products objects from memory
 		try {
 			loadFile();
 
 		} catch (PersistenceException e) {
 			throw new PersistenceException(e.getMessage());
 		}
+		// Return products as a list
 		return allProducts.values().stream().toList();
 	}
 }

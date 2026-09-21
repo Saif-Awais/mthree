@@ -19,6 +19,7 @@ public class View {
 	private UserIO io;
 
 	public int displayMainMenuAndGetSelection() {
+		// Display options and get their choice
 		io.print("Main Menu");
 		io.print("1. Display Orders");
 		io.print("2. Add an Order");
@@ -30,6 +31,7 @@ public class View {
 	}
 
 	public void displayOrders(List<Order> orderList) {
+		// Display all orders in the list to the user
 		for (Order order : orderList) {
 			io.print(order.toString());
 		}
@@ -38,33 +40,44 @@ public class View {
 	public Order getAddOrderInput(List<Tax> taxes, List<Product> products) {
 		Order order = new Order();
 		String customerName = "";
-		while (customerName.isBlank() && !customerName.matches("[a-zA-Z0-9., ]+")) {
+
+		// Customer name can only contain letters, numbers, commas and periods
+		while (customerName.isBlank() || !customerName.matches("[a-zA-Z0-9., ]+")) {
 			customerName = io.readString("Customer Name: ");
 		}
-		LocalDate ld;
-		do {
-			io.print("Date must be in future. ");
-			ld = getDateInput();
-		}
-		while (!ld.isAfter(LocalDate.now()));
 
+		LocalDate orderDate;
+
+		// Get date input, must be in the future
+		while (true) {
+			orderDate = getDateInput();
+
+			if (orderDate.isAfter(LocalDate.now())) {
+				break;
+
+			}
+			displayErrorMessage("Date must be in future. ");
+		}
+
+		// Get product type input
 		displayProducts(products);
-		int s = io.readInt("Product type: ", 1, products.size());
+		int s = io.readInt("Input Product type: (Enter corresponding number)", 1, products.size());
 		String productType = products.get(s - 1).getProductType();
 
-		for (int i = 0; i < taxes.size(); i++) {
-			io.print(i + 1 + ". " + taxes.get(i).getState());
-		}
-		s = io.readInt("State: ", 1, taxes.size());
 
-		String state = taxes.get(s - 1).getState();
+		// Get state input
+		displayTax(taxes);
 
-		int integer = io.readInt("Area: (Must be greater than 100)", 100, 10000);
+		int stateInput = io.readInt("Input state: (Enter corresponding number)", 1, taxes.size());
+
+		String state = taxes.get(stateInput - 1).getState();
+
+		int integer = io.readInt("Input area: (Must be greater than 100)", 100, 10000);
 		BigDecimal area = new BigDecimal(integer);
 
 		order.setCustomerName(customerName);
 		order.setState(state);
-		order.setOrderDate(ld);
+		order.setOrderDate(orderDate);
 		order.setArea(area);
 		order.setProductType(productType);
 		return order;
@@ -83,7 +96,7 @@ public class View {
 	}
 
 	public void displayEditOrderSuccess() {
-		io.print(" == Successfully editted order == ");
+		io.print(" == Successfully edited order == ");
 	}
 
 	public void displayExportDataSuccess() {
@@ -95,28 +108,38 @@ public class View {
 		io.print(order.toString());
 	}
 
-	public LocalDate getDateInput() throws DateTimeParseException {
-		LocalDate ld;
+	public LocalDate getDateInput()  {
+		LocalDate localDate;
+		// Loop until user provides a valid date
 		while (true) {
+
 			try {
 				String date = io.readString("Enter Date in format yyyy-mm-dd");
-				ld = LocalDate.parse(date);
+				localDate = LocalDate.parse(date);
 				break;
-			} catch (DateTimeParseException e) {
-				displayErrorMessage("Could not parse date");
 			}
+			catch (DateTimeParseException e) {
+				displayErrorMessage("No date provided or invalid format");
+			}
+
 		}
-		return ld;
+		return localDate;
 	}
 
 	public boolean getConfirmation() {
+		// Loop until user inputs Y or N.
 		while (true) {
-			String confirmation = io.readString("Save change (Y/N)? ");
+
+			// Takes input and converts to uppercase
+			String confirmation = io.readString("Save change (Y/N)? ").toUpperCase();
+
 			if (confirmation.equals("Y")) {
-				return true;
-			} else if (confirmation.equals("N")) {
-				return false;
+				return true; // User has confirmed
 			}
+			else if (confirmation.equals("N")) {
+				return false; // User does not confirm
+			}
+
 		}
 	}
 
@@ -134,6 +157,8 @@ public class View {
 	}
 
 	public void displayProducts(List<Product> products) {
+		// Display products to user
+
 		for (int i = 0; i < products.size(); i++) {
 			String msg = i + 1 + ". " + products.get(i).getProductType() + " - " + products.get(i).getCostPerSquareFoot();
 			io.print(msg);
@@ -141,6 +166,8 @@ public class View {
 	}
 
 	public void displayTax(List<Tax> taxes) {
+		// Display tax to user
+
 		for (int i = 0; i < taxes.size(); i++) {
 			io.print(i + 1 + ". " + taxes.get(i).getState());
 		}
@@ -148,8 +175,10 @@ public class View {
 
 	public Order getEditOrderInput(Order order, List<Tax> taxes, List<Product> products) {
 
-
+		// Allow user to change name, product type, state, and area.
 		String newCustomerName = io.readString("Enter customer name (" + order.getCustomerName() + ")");
+
+		// If new name provided, save it to order
 		if (!newCustomerName.isBlank()) {
 			order.setCustomerName(newCustomerName);
 		}
@@ -157,52 +186,78 @@ public class View {
 		displayProducts(products);
 
 		while (true) {
-			String editProduct = io.readString("Product type: (" + order.getProductType() + ") ");
+			// Show user current product and allows user to input number to edit.
+			String editProduct = io.readString("Product type: (Enter corresponsing number) (" + order.getProductType() + ") ");
+
 			try {
+
+				// If input provided, must be int and between 1 and products.size()
 				if (!editProduct.isBlank()) {
-					int number = Integer.parseInt(editProduct);
-					String productType = products.get(number - 1).getProductType();
+					int productIndex = Integer.parseInt(editProduct);
+
+					if (productIndex < 1 || productIndex > products.size()) {
+						throw new IndexOutOfBoundsException("Must be between 1 and " + products.size());
+					}
+					String productType = products.get(productIndex - 1).getProductType();
 					order.setProductType(productType);
 				}
+
+				// Correct input provided so break out of loop
 				break;
+
 			} catch (NumberFormatException e) {
 				displayErrorMessage("Must be blank or a integer. ");
 			} catch (IndexOutOfBoundsException e) {
-				displayErrorMessage("Must be between 1 and " + products.size());
+				displayErrorMessage(e.getMessage());
 			}
 		}
 
 		displayTax(taxes);
+
+		// Loop until blank input or int is provided between 1 and taxes.size()
 		while (true) {
-			String editState = io.readString("State type: (" + order.getState() + ") ");
+			String editState = io.readString("State type: (Enter corresponding number) (" + order.getState() + ") ");
 
 			try {
+
 				if (!editState.isBlank()) {
-					int number = Integer.parseInt(editState);
-					String state = taxes.get(number - 1).getState();
+					int stateIndex = Integer.parseInt(editState);
+					if (stateIndex < 1 || stateIndex > taxes.size()) {
+						throw new IndexOutOfBoundsException("Must be between 1 and " + taxes.size());
+					}
+					String state = taxes.get(stateIndex - 1).getState();
 					order.setState(state);
 				}
+
 				break;
+
 			} catch (NumberFormatException e) {
 				displayErrorMessage("Must be blank or a integer. ");
 			} catch (IndexOutOfBoundsException e) {
-				displayErrorMessage("Must be between 1 and " + taxes.size());
+				displayErrorMessage(e.getMessage());
 			}
 		}
 
+		// Loop until blank input or number provided which is greater or equal to 100
 		while (true) {
 			String editArea = io.readString("Area: (" + order.getArea() + ") ");
 
 			try {
+
 				if (!editArea.isBlank()) {
 					int number = Integer.parseInt(editArea);
+
 					if (number < 100) {
 						throw new NumberFormatException("Must be > 100");
 					}
+
 					BigDecimal areaa = new BigDecimal(number);
 					order.setArea(areaa);
+
 				}
+
 				break;
+
 			} catch (NumberFormatException e) {
 				displayErrorMessage("Must be blank or an integer greater than 100. ");
 			}

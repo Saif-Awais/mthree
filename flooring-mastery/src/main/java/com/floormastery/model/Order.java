@@ -2,7 +2,6 @@ package com.floormastery.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class Order {
@@ -22,9 +21,11 @@ public class Order {
 	private BigDecimal laborCost;
 	private BigDecimal total;
 
-	public Order() {}
+	public Order() {
+	}
 
 	public Order(Order order) {
+		// Copy constructor to create copies of another object
 		this.orderNumber = order.getOrderNumber();
 		this.customerName = order.getCustomerName();
 		this.state = order.getState();

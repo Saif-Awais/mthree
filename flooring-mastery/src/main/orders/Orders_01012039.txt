@@ -1,0 +1,2 @@
+OrderNumber::CustomerName::State::TaxRate::ProductType::Area::CostPerSquareFoot::LaborCostPerSquareFoot::MaterialCost::LaborCost::Tax::Total
+1::wewf::Texas::4.45::Tile::111::3.50::4.15::388.50::460.65::37.787175::886.937175
