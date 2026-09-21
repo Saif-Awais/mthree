@@ -108,7 +108,7 @@ public class View {
 		io.print(order.toString());
 	}
 
-	public LocalDate getDateInput()  {
+	public LocalDate getDateInput() {
 		LocalDate localDate;
 		// Loop until user provides a valid date
 		while (true) {
@@ -117,8 +117,7 @@ public class View {
 				String date = io.readString("Enter Date in format yyyy-mm-dd");
 				localDate = LocalDate.parse(date);
 				break;
-			}
-			catch (DateTimeParseException e) {
+			} catch (DateTimeParseException e) {
 				displayErrorMessage("No date provided or invalid format");
 			}
 
@@ -135,8 +134,7 @@ public class View {
 
 			if (confirmation.equals("Y")) {
 				return true; // User has confirmed
-			}
-			else if (confirmation.equals("N")) {
+			} else if (confirmation.equals("N")) {
 				return false; // User does not confirm
 			}
 
@@ -175,12 +173,20 @@ public class View {
 
 	public Order getEditOrderInput(Order order, List<Tax> taxes, List<Product> products) {
 
-		// Allow user to change name, product type, state, and area.
-		String newCustomerName = io.readString("Enter customer name (" + order.getCustomerName() + ")");
+		// Loop until input is blank or a valid customer name.
+		while (true) {
+			// Allow user to change name, product type, state, and area.
+			String newCustomerName = io.readString("Enter customer name (" + order.getCustomerName() + ")");
 
-		// If new name provided, save it to order
-		if (!newCustomerName.isBlank()) {
-			order.setCustomerName(newCustomerName);
+			// If new name provided, and is valid customer name, save it to order
+			if (!newCustomerName.isBlank() && newCustomerName.matches("[a-zA-Z0-9., ]+")) {
+				order.setCustomerName(newCustomerName);
+				break;
+			}
+			// If blank input then break out of loop - do not save a name
+			else if (newCustomerName.isBlank()) {
+				break;
+			}
 		}
 
 		displayProducts(products);
@@ -248,11 +254,11 @@ public class View {
 					int number = Integer.parseInt(editArea);
 
 					if (number < 100) {
-						throw new NumberFormatException("Must be > 100");
+						throw new NumberFormatException("Must be >= 100");
 					}
 
-					BigDecimal areaa = new BigDecimal(number);
-					order.setArea(areaa);
+					BigDecimal area = new BigDecimal(number);
+					order.setArea(area);
 
 				}
 
