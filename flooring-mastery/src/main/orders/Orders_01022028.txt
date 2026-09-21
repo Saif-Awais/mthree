@@ -1,0 +1,2 @@
+OrderNumber::CustomerName::State::TaxRate::ProductType::Area::CostPerSquareFoot::LaborCostPerSquareFoot::MaterialCost::LaborCost::Tax::Total
+1::ewe::Texas::4.45::Tile::323::3.50::4.15::1130.50::1340.45::109.957275::2580.907275
