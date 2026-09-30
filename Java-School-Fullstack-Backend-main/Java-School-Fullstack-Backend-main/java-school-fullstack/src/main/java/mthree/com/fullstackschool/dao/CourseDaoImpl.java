@@ -63,7 +63,7 @@ public class CourseDaoImpl implements CourseDao {
         String sql = "UPDATE course SET courseCode = ?, courseDesc = ?, teacherId = ? " +
                 "WHERE cid = ?";
         jdbcTemplate.update(sql, course.getCourseName(), course.getCourseDesc(), course.getTeacherId(),
-                course.getTeacherId());
+                course.getCourseId());
 
         //YOUR CODE ENDS HERE
     }

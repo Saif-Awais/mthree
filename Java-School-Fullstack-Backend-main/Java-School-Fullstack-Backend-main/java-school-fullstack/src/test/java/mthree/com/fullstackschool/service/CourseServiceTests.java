@@ -60,8 +60,8 @@ public class CourseServiceTests {
         course.setTeacherId(10);
 
         Course upCourse = courseService.updateCourseData(99, course);
-        assertEquals("IDs do not match, course not updated", course.getCourseName());
-        assertEquals("IDs do not match, course not updated", course.getCourseDesc());
+        assertEquals("IDs do not match, course not updated", upCourse.getCourseName());
+        assertEquals("IDs do not match, course not updated", upCourse.getCourseDesc());
     }
 
     @Test
