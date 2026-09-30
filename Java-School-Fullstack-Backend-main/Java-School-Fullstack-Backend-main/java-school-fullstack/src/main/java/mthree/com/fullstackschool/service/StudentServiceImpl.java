@@ -34,6 +34,7 @@ public class StudentServiceImpl implements StudentServiceInterface {
     public Student getStudentById(int id) {
         //YOUR CODE STARTS HERE
 
+
         return studentDao.findStudentById(id);
 
         //YOUR CODE ENDS HERE
@@ -42,6 +43,11 @@ public class StudentServiceImpl implements StudentServiceInterface {
     public Student addNewStudent(Student student) {
         //YOUR CODE STARTS HERE
 
+        if (student.getStudentFirstName().isBlank() || student.getStudentLastName().isBlank()) {
+            student.setStudentFirstName("First Name blank, student NOT added");
+            student.setStudentLastName("Last Name blank, student NOT added");
+            return student;
+        }
         studentDao.createNewStudent(student);
         return student;
 
@@ -54,6 +60,7 @@ public class StudentServiceImpl implements StudentServiceInterface {
         if (id != student.getStudentId()) {
             student.setStudentFirstName("IDs do not match, student not updated");
             student.setStudentLastName("IDs do not match, student not updated");
+            return student;
         }
         studentDao.updateStudent(student);
         return student;
